@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "email-agent"
+version = "0.1.0"
+description = "Local-first email monitoring agent: urgency, watchlist topics and sender analysis with a local web UI."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.11",
+    "pydantic-settings>=2.9",
+    "openai>=1.75",
+    "google-api-python-client>=2.160",
+    "google-auth-oauthlib>=1.2",
+    "google-auth-httplib2>=0.2",
+    "typer>=0.15",
+    "python-dotenv>=1.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.25",
+    "ruff>=0.11",
+]
+
+[project.scripts]
+email-agent = "email_agent.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/email_agent"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/email_agent", "README.md", "LICENSE"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+# ruff format owns line wrapping; long f-strings and SQL are left as written.
+ignore = ["E501"]

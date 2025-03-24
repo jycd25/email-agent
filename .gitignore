@@ -1,0 +1,25 @@
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# node
+node_modules/
+frontend/dist/
+src/email_agent/web/dist/
+
+# local notes, not for the repo
+docs/
+
+# editors / os
+.vscode/
+.idea/
+.DS_Store
