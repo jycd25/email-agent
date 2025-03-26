@@ -5,15 +5,50 @@ from typing import TypeVar
 import pytest
 from pydantic import BaseModel
 
+from email_agent.analyzers.urgency import UrgencyCheck, UrgencyResult
 from email_agent.core.config import AppConfig
 from email_agent.store import Store
 
 T = TypeVar("T", bound=BaseModel)
 
 
+class FakeLLM:
+    """Returns canned results per schema. Records every call so tests can
+    assert how many model calls a code path made."""
+
+    def __init__(self, overrides: dict | None = None):
+        self.calls: list[tuple[str, str]] = []
+        self.responses: dict[type, BaseModel] = {
+            UrgencyCheck: UrgencyCheck(urgency_level="low", confidence_score=0.9),
+            UrgencyResult: UrgencyResult(
+                urgency_level="urgent",
+                time_sensitive=True,
+                deadline="today 5pm",
+                keywords_detected=["down"],
+                confidence_score=0.95,
+                summary="Prod is down; fix now.",
+            ),
+        }
+        self.responses.update(overrides or {})
+
+    def structured(self, schema, *, system, user, model=None):
+        self.calls.append((schema.__name__, system))
+        r = self.responses[schema]
+        return r.model_copy()
+
+    def text(self, *, system, user, model=None, max_tokens=256):
+        self.calls.append(("text", system))
+        return "ok"
+
+
 @pytest.fixture
 def store(tmp_path) -> Store:
     return Store(tmp_path / "t.db")
+
+
+@pytest.fixture
+def fake_llm() -> FakeLLM:
+    return FakeLLM()
 
 
 @pytest.fixture
