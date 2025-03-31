@@ -15,7 +15,7 @@ from collections.abc import Callable
 from typing import Any
 
 from ..alerts import AlertLevel, AlertService, AlertType
-from ..analyzers import UrgencyAnalyzer
+from ..analyzers import TopicAnalyzer, UrgencyAnalyzer
 from ..analyzers.urgency import exceeds
 from ..core.config import RuntimeSettings
 from ..core.errors import ConfigurationError, SourceError
@@ -213,6 +213,24 @@ class Worker:
                     from_addr=row.from_addr,
                     deadline=r.deadline,
                     keywords=r.keywords_detected,
+                )
+
+        if s.analyze_topics and s.watchlist_topics:
+            r = TopicAnalyzer(llm, s.watchlist_topics, s.profile).analyze(
+                content, threshold=s.topic_threshold
+            )
+            results["topic"] = r.model_dump()
+            self.store.add_analysis(row.id, "topic", results["topic"])
+            if r.is_watchlist_topic and r.confidence_score >= s.min_confidence:
+                self.alerts.raise_alert(
+                    AlertType.TOPIC,
+                    AlertLevel.HIGH,
+                    f"Watchlist: {r.primary_topic}",
+                    email_id=row.id,
+                    subject=row.subject,
+                    from_addr=row.from_addr,
+                    summary=r.message_summary,
+                    score=r.similarity_score,
                 )
 
         return results
