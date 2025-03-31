@@ -5,6 +5,7 @@ from typing import TypeVar
 import pytest
 from pydantic import BaseModel
 
+from email_agent.analyzers.topic import TopicCheck, TopicResult
 from email_agent.analyzers.urgency import UrgencyCheck, UrgencyResult
 from email_agent.core.config import AppConfig
 from email_agent.store import Store
@@ -27,6 +28,13 @@ class FakeLLM:
                 keywords_detected=["down"],
                 confidence_score=0.95,
                 summary="Prod is down; fix now.",
+            ),
+            TopicCheck: TopicCheck(topic="", similarity_score=0.1, confidence_score=0.9),
+            TopicResult: TopicResult(
+                primary_topic="Production incident",
+                similarity_score=0.9,
+                confidence_score=0.9,
+                message_summary="Outage in prod.",
             ),
         }
         self.responses.update(overrides or {})
