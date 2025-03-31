@@ -36,6 +36,17 @@ Guidance:
 - If a deadline is stated, extract it verbatim into `deadline`.
 - `confidence_score` is how sure you are of the level, 0 to 1."""
 
+TOPIC_RUBRIC = """\
+Similarity score:
+- 0.9-1.0: the email is primarily about the topic
+- 0.7-0.9: the topic is a significant part of the email
+- 0.5-0.7: the topic is mentioned but is not the main point
+- 0.2-0.5: loosely related
+- 0.0-0.2: unrelated
+
+Pick the single best-matching watchlist topic as `primary_topic`, or an empty
+string if nothing matches above 0.2. Do not invent topics not on the list."""
+
 
 def persona(profile: Profile) -> str:
     return PERSONA.get(profile, PERSONA[Profile.GENERAL])
@@ -54,4 +65,19 @@ def urgency_full(profile: Profile) -> str:
         f"{URGENCY_RUBRIC}\n\nAlso list the specific words or phrases that drove your "
         "decision in `keywords_detected`, and write a one-sentence `summary` that says what "
         "the user needs to do and by when."
+    )
+
+
+def topic_quick(profile: Profile, topics: list[str]) -> str:
+    return (
+        f"{persona(profile)}\n\nDecide whether the email below is about any of these "
+        f"watchlist topics:\n" + "\n".join(f"- {t}" for t in topics) + f"\n\n{TOPIC_RUBRIC}"
+    )
+
+
+def topic_full(profile: Profile, topics: list[str]) -> str:
+    return (
+        topic_quick(profile, topics)
+        + "\n\nAlso write `message_summary`: one or two sentences saying what the email says "
+        "about the topic and what, if anything, the user should do."
     )

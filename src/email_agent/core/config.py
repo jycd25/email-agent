@@ -24,6 +24,17 @@ class Profile(str, Enum):
     GENERAL = "general"
 
 
+PROFILE_TOPICS: dict[Profile, list[str]] = {
+    Profile.GENERAL: [
+        "Project Alpha",
+        "Budget Planning",
+        "HR Policy",
+        "Customer Feedback",
+        "Security Incident",
+    ],
+}
+
+
 class AppConfig(BaseSettings):
     """Values that need to be known before the store exists."""
 
@@ -64,6 +75,12 @@ class RuntimeSettings(BaseModel):
     fetch_since: str | None = None  # ISO date; None = no lower bound
 
     analyze_urgency: bool = True
+    analyze_topics: bool = True
 
     urgency_threshold: str = "high"
+    topic_threshold: float = Field(default=0.6, ge=0.0, le=1.0)
     min_confidence: float = Field(default=0.7, ge=0.0, le=1.0)
+
+    watchlist_topics: list[str] = Field(
+        default_factory=lambda: list(PROFILE_TOPICS[Profile.GENERAL])
+    )
