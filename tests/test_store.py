@@ -64,6 +64,16 @@ def test_alerts(store):
     assert store.mark_alert_read(999) is False
 
 
+def test_sender_rules_roundtrip(store):
+    r = store.upsert_rule("*@Corp.com", "work", "colleagues")
+    assert r.pattern == "*@corp.com"
+    store.upsert_rule("*@corp.com", "vip")
+    assert store.list_rules()[0].category == "vip"
+    store.touch_rule("*@corp.com")
+    assert store.list_rules()[0].match_count == 1
+    assert store.delete_rule("*@corp.com") and not store.list_rules()
+
+
 def test_settings_roundtrip(store):
     assert store.get_setting("x") is None
     store.set_setting("x", {"a": [1, 2]})

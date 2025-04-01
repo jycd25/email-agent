@@ -17,7 +17,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from .models import Alert, Analysis, EmailRow, EmailStatus
+from .models import Alert, Analysis, EmailRow, EmailStatus, SenderRule
 
 SCHEMA_VERSION = 1
 
@@ -60,6 +60,15 @@ CREATE TABLE IF NOT EXISTS alerts (
     created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_alerts_created ON alerts(created_at DESC);
+
+CREATE TABLE IF NOT EXISTS sender_rules (
+    pattern      TEXT PRIMARY KEY,
+    category     TEXT NOT NULL,
+    notes        TEXT,
+    added_at     TEXT NOT NULL,
+    last_matched TEXT,
+    match_count  INTEGER NOT NULL DEFAULT 0
+);
 
 CREATE TABLE IF NOT EXISTS settings (
     key   TEXT PRIMARY KEY,
@@ -375,6 +384,41 @@ class Store:
             return int(c.execute("SELECT COUNT(*) FROM alerts WHERE read=0").fetchone()[0])
 
     # ---- sender rules ---------------------------------------------------
+
+    def list_rules(self) -> list[SenderRule]:
+        with self._conn() as c:
+            rows = c.execute("SELECT * FROM sender_rules ORDER BY added_at").fetchall()
+        return [SenderRule(**dict(r)) for r in rows]
+
+    def upsert_rule(self, pattern: str, category: str, notes: str | None = None) -> SenderRule:
+        pattern = pattern.strip().lower()
+        with self._tx() as c:
+            c.execute(
+                """INSERT INTO sender_rules (pattern, category, notes, added_at)
+                   VALUES (?,?,?,?)
+                   ON CONFLICT(pattern) DO UPDATE SET category=excluded.category, notes=excluded.notes""",
+                (pattern, category, notes, utcnow()),
+            )
+            r = c.execute("SELECT * FROM sender_rules WHERE pattern=?", (pattern,)).fetchone()
+        return SenderRule(**dict(r))
+
+    def delete_rule(self, pattern: str) -> bool:
+        with self._tx() as c:
+            return (
+                c.execute(
+                    "DELETE FROM sender_rules WHERE pattern=?", (pattern.strip().lower(),)
+                ).rowcount
+                == 1
+            )
+
+    def touch_rule(self, pattern: str) -> None:
+        with self._tx() as c:
+            c.execute(
+                "UPDATE sender_rules SET last_matched=?, match_count=match_count+1 WHERE pattern=?",
+                (utcnow(), pattern),
+            )
+
+    # ---- settings -------------------------------------------------------
 
     def get_setting(self, key: str) -> Any | None:
         with self._conn() as c:
