@@ -15,7 +15,7 @@ from collections.abc import Callable
 from typing import Any
 
 from ..alerts import AlertLevel, AlertService, AlertType
-from ..analyzers import TopicAnalyzer, UrgencyAnalyzer
+from ..analyzers import SenderAnalyzer, SenderCategory, TopicAnalyzer, UrgencyAnalyzer
 from ..analyzers.urgency import exceeds
 from ..core.config import RuntimeSettings
 from ..core.errors import ConfigurationError, SourceError
@@ -148,7 +148,7 @@ class Worker:
     async def process_queue(self) -> int:
         s = self.settings()
         llm = self.llm_factory(s)
-        rules: list = []
+        rules = self.store.list_rules() if s.analyze_sender else []
         count = 0
         seen: set[int] = set()
         while not self._stop.is_set():
@@ -189,6 +189,40 @@ class Worker:
     ) -> dict[str, Any]:
         content = f"Subject: {row.subject}\nFrom: {row.from_addr}\n\n{clip(row.body_text)}"
         results: dict[str, Any] = {}
+
+        if s.analyze_sender and row.from_addr:
+            sa = SenderAnalyzer(self.store, llm, mode=s.sender_mode, profile=s.profile, rules=rules)
+            r = sa.analyze(row.from_addr, row.body_text[:1500])
+            results["sender"] = r.model_dump()
+            self.store.add_analysis(row.id, "sender", results["sender"])
+            if r.is_blocked:
+                self.alerts.raise_alert(
+                    AlertType.SENDER,
+                    AlertLevel.HIGH,
+                    f"Blocked sender: {row.from_addr}",
+                    email_id=row.id,
+                    category=r.category.value,
+                    subject=row.subject,
+                )
+            elif r.category == SenderCategory.VIP:
+                self.alerts.raise_alert(
+                    AlertType.SENDER,
+                    AlertLevel.MEDIUM,
+                    f"VIP sender: {row.from_addr}",
+                    email_id=row.id,
+                    category=r.category.value,
+                    subject=row.subject,
+                )
+            elif r.category == SenderCategory.UNKNOWN and s.alert_on_unknown_sender:
+                self.alerts.raise_alert(
+                    AlertType.SENDER,
+                    AlertLevel.LOW,
+                    f"Unknown sender: {row.from_addr}",
+                    email_id=row.id,
+                    subject=row.subject,
+                )
+            if r.is_blocked:
+                return results  # do not spend model calls on blocked mail
 
         if llm is None:
             raise ConfigurationError("no model configured; cannot analyze content")

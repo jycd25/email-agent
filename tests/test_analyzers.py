@@ -1,7 +1,8 @@
 import pytest
 
 from conftest import FakeLLM
-from email_agent.analyzers import TopicAnalyzer, UrgencyAnalyzer
+from email_agent.analyzers import SenderAnalyzer, SenderCategory, TopicAnalyzer, UrgencyAnalyzer
+from email_agent.analyzers.sender import pattern_matches
 from email_agent.analyzers.topic import TopicCheck
 from email_agent.analyzers.urgency import UrgencyCheck, exceeds
 
@@ -49,6 +50,38 @@ def test_topic_full_pass_above_threshold():
 def test_topic_with_no_topics_makes_no_calls(fake_llm):
     r = TopicAnalyzer(fake_llm, []).analyze("x", threshold=0.5)
     assert r.detailed is False and fake_llm.calls == []
+
+
+def test_pattern_matching():
+    assert pattern_matches("Bob@X.com", "bob@x.com")
+    assert pattern_matches("*@x.com", "anyone@x.com")
+    assert not pattern_matches("*@x.com", "anyone@notx.com")
+    assert pattern_matches("/.*@(a|b)\\.com/", "z@b.com")
+    assert not pattern_matches("/[/", "z@b.com")
+
+
+def test_sender_rule_hit_skips_llm(store, fake_llm):
+    store.upsert_rule("*@corp.com", "vip")
+    r = SenderAnalyzer(store, fake_llm, mode="auto").analyze("ceo@corp.com")
+    assert r.category == SenderCategory.VIP and r.rule_matched == "*@corp.com" and r.is_trusted
+    assert fake_llm.calls == []
+    assert store.list_rules()[0].match_count == 1
+
+
+def test_sender_falls_back_to_llm(store, fake_llm):
+    r = SenderAnalyzer(store, fake_llm, mode="auto").analyze("new@corp.com", "hello")
+    assert r.analysis_method == "llm" and r.category == SenderCategory.WORK
+    assert r.suggested_rule == "*@corp.com"
+
+
+def test_sender_rule_mode_never_calls_llm(store, fake_llm):
+    r = SenderAnalyzer(store, fake_llm, mode="rule").analyze("new@corp.com")
+    assert r.category == SenderCategory.UNKNOWN and fake_llm.calls == []
+
+
+def test_sender_without_llm(store):
+    r = SenderAnalyzer(store, None, mode="auto").analyze("x@y.z")
+    assert r.category == SenderCategory.UNKNOWN and r.analysis_method == "none"
 
 
 def test_llm_client_translates_connection_errors():

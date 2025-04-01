@@ -5,6 +5,7 @@ from typing import TypeVar
 import pytest
 from pydantic import BaseModel
 
+from email_agent.analyzers.sender import SenderCategory, SenderLLMAnalysis
 from email_agent.analyzers.topic import TopicCheck, TopicResult
 from email_agent.analyzers.urgency import UrgencyCheck, UrgencyResult
 from email_agent.core.config import AppConfig
@@ -35,6 +36,12 @@ class FakeLLM:
                 similarity_score=0.9,
                 confidence_score=0.9,
                 message_summary="Outage in prod.",
+            ),
+            SenderLLMAnalysis: SenderLLMAnalysis(
+                category=SenderCategory.WORK,
+                confidence_score=0.8,
+                notes="looks like a colleague",
+                suggested_rule="*@corp.com",
             ),
         }
         self.responses.update(overrides or {})
