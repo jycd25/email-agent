@@ -76,10 +76,13 @@ class RuntimeSettings(BaseModel):
 
     analyze_urgency: bool = True
     analyze_topics: bool = True
+    analyze_sender: bool = True
 
     urgency_threshold: str = "high"
     topic_threshold: float = Field(default=0.6, ge=0.0, le=1.0)
     min_confidence: float = Field(default=0.7, ge=0.0, le=1.0)
+    alert_on_unknown_sender: bool = True
+    sender_mode: str = "auto"  # rule | llm | auto
 
     watchlist_topics: list[str] = Field(
         default_factory=lambda: list(PROFILE_TOPICS[Profile.GENERAL])

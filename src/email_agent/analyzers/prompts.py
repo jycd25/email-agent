@@ -47,6 +47,23 @@ Similarity score:
 Pick the single best-matching watchlist topic as `primary_topic`, or an empty
 string if nothing matches above 0.2. Do not invent topics not on the list."""
 
+SENDER_RUBRIC = """\
+Sender categories:
+- trusted:    known, reliable sender that should always get through
+- blocked:    malicious, phishing, or unwanted
+- unknown:    cannot tell; new or unclassifiable
+- vip:        important person needing special attention
+- newsletter: mailing lists and digests
+- marketing:  promotional / commercial
+- social:     social network notifications
+- work:       colleagues, school staff, professional contacts
+- personal:   friends and family
+
+Judge from the address, display name, domain and any content provided.
+Prefer `unknown` over guessing when the evidence is thin. Suggest a reusable
+rule pattern when you are confident: an exact address, or `*@domain` for a
+whole domain."""
+
 
 def persona(profile: Profile) -> str:
     return PERSONA.get(profile, PERSONA[Profile.GENERAL])
@@ -81,3 +98,7 @@ def topic_full(profile: Profile, topics: list[str]) -> str:
         + "\n\nAlso write `message_summary`: one or two sentences saying what the email says "
         "about the topic and what, if anything, the user should do."
     )
+
+
+def sender(profile: Profile) -> str:
+    return f"{persona(profile)}\n\nCategorize the email sender described below.\n\n{SENDER_RUBRIC}"
