@@ -77,6 +77,7 @@ class RuntimeSettings(BaseModel):
     analyze_urgency: bool = True
     analyze_topics: bool = True
     analyze_sender: bool = True
+    classify: bool = False
 
     urgency_threshold: str = "high"
     topic_threshold: float = Field(default=0.6, ge=0.0, le=1.0)

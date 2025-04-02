@@ -15,7 +15,7 @@ from collections.abc import Callable
 from typing import Any
 
 from ..alerts import AlertLevel, AlertService, AlertType
-from ..analyzers import SenderAnalyzer, SenderCategory, TopicAnalyzer, UrgencyAnalyzer
+from ..analyzers import Classifier, SenderAnalyzer, SenderCategory, TopicAnalyzer, UrgencyAnalyzer
 from ..analyzers.urgency import exceeds
 from ..core.config import RuntimeSettings
 from ..core.errors import ConfigurationError, SourceError
@@ -266,5 +266,12 @@ class Worker:
                     summary=r.message_summary,
                     score=r.similarity_score,
                 )
+
+        if s.classify:
+            r = Classifier(llm, s.profile).classify(
+                row.body_text, subject=row.subject, sender=row.from_addr
+            )
+            results["classification"] = r.model_dump()
+            self.store.add_analysis(row.id, "classification", results["classification"])
 
         return results

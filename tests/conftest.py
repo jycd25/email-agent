@@ -5,6 +5,7 @@ from typing import TypeVar
 import pytest
 from pydantic import BaseModel
 
+from email_agent.analyzers.classifier import Classification
 from email_agent.analyzers.sender import SenderCategory, SenderLLMAnalysis
 from email_agent.analyzers.topic import TopicCheck, TopicResult
 from email_agent.analyzers.urgency import UrgencyCheck, UrgencyResult
@@ -42,6 +43,13 @@ class FakeLLM:
                 confidence_score=0.8,
                 notes="looks like a colleague",
                 suggested_rule="*@corp.com",
+            ),
+            Classification: Classification(
+                category="Work",
+                priority="Urgent",
+                action_required=True,
+                action_list=["Restart service"],
+                important_dates=[],
             ),
         }
         self.responses.update(overrides or {})

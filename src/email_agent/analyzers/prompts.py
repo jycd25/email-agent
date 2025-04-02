@@ -64,6 +64,15 @@ Prefer `unknown` over guessing when the evidence is thin. Suggest a reusable
 rule pattern when you are confident: an exact address, or `*@domain` for a
 whole domain."""
 
+CLASSIFY_RUBRIC = """\
+Categories: Work, Personal, School, Social, Billing, Marketing, Spam, Other.
+Priority: Urgent, Important, Normal, Low.
+
+- Extract `action_list` as short imperative items the user must actually do.
+- Put explicit dates (deadlines, meetings) in `important_dates` as ISO dates
+  when the year is clear, otherwise as written.
+- Spam and marketing are never Urgent or Important regardless of wording."""
+
 
 def persona(profile: Profile) -> str:
     return PERSONA.get(profile, PERSONA[Profile.GENERAL])
@@ -102,3 +111,7 @@ def topic_full(profile: Profile, topics: list[str]) -> str:
 
 def sender(profile: Profile) -> str:
     return f"{persona(profile)}\n\nCategorize the email sender described below.\n\n{SENDER_RUBRIC}"
+
+
+def classify(profile: Profile) -> str:
+    return f"{persona(profile)}\n\nClassify the email below.\n\n{CLASSIFY_RUBRIC}"
