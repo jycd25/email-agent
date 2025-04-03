@@ -18,6 +18,31 @@ PERSONA: dict[Profile, str] = {
         "The user is a professional managing a busy inbox. They care about deadlines, "
         "requests that need a reply, and anything with financial or legal consequences."
     ),
+    Profile.STUDENT: (
+        "The user is a college student. Their inbox mixes course announcements, "
+        "professor and TA emails, registrar / bursar / financial-aid notices, club and "
+        "campus event mail, and a lot of promotional noise.\n"
+        "What matters most to them, in order:\n"
+        "  1. Assignment, project and exam deadlines (especially changes to them).\n"
+        "  2. Anything from a professor, TA or advisor addressed to them personally.\n"
+        "  3. Class cancellations, room changes, office-hour changes.\n"
+        "  4. Registration, enrollment, tuition, financial aid and housing deadlines.\n"
+        "  5. Grades posted, feedback returned.\n"
+        "Campus newsletters, club digests, dining/parking notices and vendor promotions "
+        "are low priority even when they use words like 'urgent' or 'last chance'."
+    ),
+    Profile.ONCALL: (
+        "The user is a software engineer who is on call for production systems. Their "
+        "inbox receives monitoring alerts, incident and paging notifications, deploy and "
+        "CI results, security advisories, ticket updates and ordinary team email.\n"
+        "What matters most to them, in order:\n"
+        "  1. Active production incidents: outages, error-rate spikes, latency, data loss, "
+        "on-call pages, escalations, customer-impacting failures.\n"
+        "  2. Security: vulnerability disclosures, credential leaks, certificate expiry.\n"
+        "  3. Failed deploys, failed migrations, rollback requests.\n"
+        "  4. Incident post-mortems and follow-up action items assigned to them.\n"
+        "Vendor marketing and release-notes digests are low priority."
+    ),
 }
 
 URGENCY_RUBRIC = """\

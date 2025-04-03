@@ -22,6 +22,8 @@ class Profile(str, Enum):
     """Who the agent is working for. Drives prompt context and defaults."""
 
     GENERAL = "general"
+    STUDENT = "student"
+    ONCALL = "oncall"
 
 
 PROFILE_TOPICS: dict[Profile, list[str]] = {

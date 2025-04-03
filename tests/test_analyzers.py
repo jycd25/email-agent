@@ -5,6 +5,7 @@ from email_agent.analyzers import SenderAnalyzer, SenderCategory, TopicAnalyzer,
 from email_agent.analyzers.sender import pattern_matches
 from email_agent.analyzers.topic import TopicCheck
 from email_agent.analyzers.urgency import UrgencyCheck, exceeds
+from email_agent.core.config import Profile
 
 
 def test_exceeds_threshold():
@@ -30,6 +31,13 @@ def test_urgency_invalid_level_is_clamped():
     llm = FakeLLM({UrgencyCheck: UrgencyCheck(urgency_level="MEGA", confidence_score=7)})
     q = UrgencyAnalyzer(llm).quick("x")
     assert q.urgency_level == "low" and q.confidence_score == 0.0
+
+
+def test_persona_lands_in_prompt(fake_llm):
+    UrgencyAnalyzer(fake_llm, Profile.ONCALL).quick("x")
+    assert "on call for production" in fake_llm.calls[0][1]
+    UrgencyAnalyzer(fake_llm, Profile.STUDENT).quick("x")
+    assert "college student" in fake_llm.calls[1][1]
 
 
 def test_topic_skips_full_pass_below_threshold(fake_llm):
