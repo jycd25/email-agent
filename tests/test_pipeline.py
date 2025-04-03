@@ -6,7 +6,7 @@ from conftest import SAMPLE_HTML, SAMPLE_PLAIN, FakeLLM
 from email_agent.alerts import AlertService
 from email_agent.analyzers.topic import TopicCheck
 from email_agent.analyzers.urgency import UrgencyCheck
-from email_agent.core.config import RuntimeSettings
+from email_agent.core.config import Profile, RuntimeSettings
 from email_agent.core.events import EventBus
 from email_agent.pipeline import Worker
 from email_agent.sources import RawEmail
@@ -37,7 +37,7 @@ class FakeSource:
 def make_worker(store, llm, raws, **settings):
     bus = EventBus()
     s = RuntimeSettings(
-        watchlist_topics=["Production incident"], **settings
+        profile=Profile.ONCALL, watchlist_topics=["Production incident"], **settings
     )
     src = FakeSource(raws)
     w = Worker(
