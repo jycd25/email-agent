@@ -34,6 +34,26 @@ PROFILE_TOPICS: dict[Profile, list[str]] = {
         "Customer Feedback",
         "Security Incident",
     ],
+    Profile.STUDENT: [
+        "Assignment deadline",
+        "Exam schedule",
+        "Grade posted",
+        "Registration / enrollment",
+        "Financial aid / tuition",
+        "Office hours change",
+        "Class cancelled",
+        "Internship / career fair",
+    ],
+    Profile.ONCALL: [
+        "Production incident",
+        "Outage / downtime",
+        "PagerDuty / on-call escalation",
+        "Security vulnerability",
+        "Deployment failed",
+        "SLA breach",
+        "Data loss / corruption",
+        "Certificate expiry",
+    ],
 }
 
 
