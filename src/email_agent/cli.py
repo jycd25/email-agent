@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import logging
+from pathlib import Path
 
 import typer
 
@@ -52,6 +54,35 @@ def auth() -> None:
     ctx = _ctx()
     ctx.gmail.authorize(interactive=True)
     typer.echo(f"Gmail authorized. Token saved to {ctx.config.token_path}")
+
+
+@app.command()
+def analyze(
+    prompt: str = typer.Argument("", help='e.g. "is this urgent: {server is down}"'),
+    file: Path | None = typer.Option(
+        None, "--file", "-f", help="Analyze an .eml file (or - for stdin)"
+    ),
+    as_json: bool = typer.Option(False, "--json"),
+) -> None:
+    """Analyze one email. Give a prompt, or --file message.eml, or pipe an email to --file -."""
+    import sys
+
+    from .agent import EmailAgent
+    from .sources.parse import parse_raw
+
+    if file is not None:
+        raw = sys.stdin.buffer.read() if str(file) == "-" else file.read_bytes()
+        p = parse_raw(raw)
+        body = f"Subject: {p.subject}\nFrom: {p.from_addr}\n\n{p.body_text}"
+        prompt = (prompt or "full analysis") + ": {" + body + "}"
+        if p.from_addr:
+            prompt += f" from {p.from_addr}"
+    if not prompt:
+        raise typer.BadParameter("give a prompt or --file")
+    ctx = _ctx()
+    agent = EmailAgent(ctx.store, ctx.settings(), ctx.make_llm(), ctx.selector_client())
+    result = agent.process(prompt)
+    typer.echo(json.dumps(result, indent=2, default=str) if as_json else agent.format(result))
 
 
 if __name__ == "__main__":
