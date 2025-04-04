@@ -140,3 +140,11 @@ def sender(profile: Profile) -> str:
 
 def classify(profile: Profile) -> str:
     return f"{persona(profile)}\n\nClassify the email below.\n\n{CLASSIFY_RUBRIC}"
+
+
+TOOL_SELECT_SYSTEM = (
+    "You route a user's request to exactly one tool. Pick the tool whose description best "
+    "matches what the user is asking for. If the request mentions a specific sender address "
+    "and nothing else, choose sender analysis. If it asks about several things at once, "
+    "choose the comprehensive analysis."
+)

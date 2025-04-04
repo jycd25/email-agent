@@ -74,6 +74,14 @@ class App:
         self._llm_cache = (key, llm)
         return llm
 
+    def selector_client(self):
+        """OpenAI client used only for tool selection in the prompt agent."""
+        if not self.config.openai_api_key:
+            return None
+        from openai import OpenAI
+
+        return OpenAI(api_key=self.config.openai_api_key)
+
     # -- lifecycle --------------------------------------------------------
 
     async def start(self) -> None:

@@ -90,6 +90,7 @@ class RuntimeSettings(BaseModel):
     provider: Provider = Provider.OLLAMA
     model: str = "llama3.1:8b"
     base_url: str = "http://localhost:11434/v1"
+    tool_selection_model: str = "gpt-4o-mini"
 
     poll_interval_seconds: int = Field(default=60, ge=5, le=3600)
     batch_size: int = Field(default=10, ge=1, le=100)
