@@ -28,6 +28,26 @@ def version() -> None:
 
 
 @app.command()
+def ui(host: str | None = None, port: int | None = None, open_browser: bool = True) -> None:
+    """Start the web UI and the background worker."""
+    import threading
+    import webbrowser
+
+    import uvicorn
+
+    from .api import create_api
+
+    ctx = _ctx()
+    host = host or ctx.config.host
+    port = port or ctx.config.port
+    url = f"http://{host}:{port}"
+    if open_browser:
+        threading.Timer(1.0, lambda: webbrowser.open(url)).start()
+    typer.echo(f"email-agent {__version__} -> {url}")
+    uvicorn.run(create_api(ctx), host=host, port=port, log_level=ctx.config.log_level.lower())
+
+
+@app.command()
 def run() -> None:
     """Run the worker headless (no UI)."""
     import asyncio
