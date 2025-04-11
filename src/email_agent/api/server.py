@@ -179,7 +179,11 @@ def create_api(app_ctx) -> FastAPI:
             async for ev in ctx.bus.subscribe():
                 yield f"event: {ev['type']}\ndata: {json.dumps(ev, default=str)}\n\n"
 
-        return StreamingResponse(gen(), media_type="text/event-stream")
+        return StreamingResponse(
+            gen(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
 
     # -- frontend ---------------------------------------------------------
 
