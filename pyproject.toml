@@ -35,6 +35,8 @@ email-agent = "email_agent.cli:app"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/email_agent"]
+# The compiled frontend is shipped inside the wheel so `pip install` is enough.
+artifacts = ["src/email_agent/web/dist/**"]
 
 [tool.hatch.build.targets.sdist]
 include = ["src/email_agent", "README.md", "LICENSE"]
