@@ -98,6 +98,9 @@ export default function App() {
         <span className="pill" title="Gmail authorization">
           <i className={`dot ${status?.gmail_authorized ? "on" : "bad"}`} /> gmail
         </span>
+        <span className="pill" title="Outlook / Microsoft 365 authorization">
+          <i className={`dot ${status?.outlook_authorized ? "on" : "bad"}`} /> outlook
+        </span>
         <span className="spacer" />
         {q && (
           <span className="mono muted">
@@ -122,9 +125,9 @@ export default function App() {
           {status?.last_fetch_error && view === "inbox" && (
             <div className="notice bad" style={{ margin: 12 }}>
               {status.last_fetch_error}{" "}
-              {!status.gmail_authorized && (
+              {!status.gmail_authorized && !status.outlook_authorized && (
                 <span>
-                  — run <code>email-agent auth</code> in a terminal.
+                  — run <code>email-agent auth gmail</code> or <code>email-agent auth outlook</code> in a terminal.
                 </span>
               )}
             </div>

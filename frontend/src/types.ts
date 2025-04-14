@@ -95,6 +95,8 @@ export interface AppStatus {
   provider: string;
   model: string;
   gmail_authorized: boolean;
+  outlook_authorized: boolean;
+  outlook_configured: boolean;
   queue: Record<Status | "total", number>;
   unread_alerts: number;
   last_fetch_at: string | null;
