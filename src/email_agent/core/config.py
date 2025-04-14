@@ -67,6 +67,10 @@ class AppConfig(BaseSettings):
     port: int = 8000
     log_level: str = "INFO"
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
+    # Outlook / Microsoft 365: an Entra "public client" app registration id.
+    outlook_client_id: str | None = None
+    outlook_tenant: str = "common"
+
     @property
     def db_path(self) -> Path:
         return self.data_dir / "email_agent.db"
@@ -78,6 +82,10 @@ class AppConfig(BaseSettings):
     @property
     def token_path(self) -> Path:
         return self.data_dir / "token.json"
+
+    @property
+    def outlook_token_path(self) -> Path:
+        return self.data_dir / "outlook_token.json"
 
     def ensure_dirs(self) -> None:
         self.data_dir.mkdir(parents=True, exist_ok=True)
