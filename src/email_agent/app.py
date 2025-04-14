@@ -12,6 +12,7 @@ from .core.events import EventBus
 from .llm import LLM, LLMClient
 from .pipeline import Worker
 from .sources.gmail import GmailSource
+from .sources.outlook import OutlookSource
 from .store import Store
 
 log = logging.getLogger(__name__)
@@ -26,7 +27,13 @@ class App:
         self.bus = EventBus()
         self.alerts = AlertService(self.store, self.bus)
         self.gmail = GmailSource(self.config.credentials_path, self.config.token_path)
-        self.sources = {self.gmail.name: self.gmail}
+        self.outlook = OutlookSource(
+            self.config.outlook_token_path,
+            client_id=self.config.outlook_client_id,
+            tenant=self.config.outlook_tenant,
+        )
+        # Every authorized source is polled; a user can have Gmail and Outlook at once.
+        self.sources = {self.gmail.name: self.gmail, self.outlook.name: self.outlook}
         self.worker = Worker(
             self.store,
             self.bus,
@@ -102,6 +109,8 @@ class App:
             "provider": s.provider.value,
             "model": s.model,
             "gmail_authorized": self.gmail.is_authorized(),
+            "outlook_authorized": self.outlook.is_authorized(),
+            "outlook_configured": bool(self.config.outlook_client_id),
             "queue": self.store.queue_stats(),
             "unread_alerts": self.store.unread_alert_count(),
             "last_fetch_at": self.worker.last_fetch_at,

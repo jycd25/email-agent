@@ -69,11 +69,19 @@ def run() -> None:
 
 
 @app.command()
-def auth() -> None:
-    """Authorize Gmail. Opens a browser once; the token is saved locally."""
+def auth(
+    provider: str = typer.Argument("gmail", help="gmail or outlook"),
+) -> None:
+    """Authorize a mail account. Gmail opens a browser; Outlook prints a device-sign-in code."""
     ctx = _ctx()
-    ctx.gmail.authorize(interactive=True)
-    typer.echo(f"Gmail authorized. Token saved to {ctx.config.token_path}")
+    if provider == "gmail":
+        ctx.gmail.authorize(interactive=True)
+        typer.echo(f"Gmail authorized. Token saved to {ctx.config.token_path}")
+    elif provider == "outlook":
+        ctx.outlook.authorize(interactive=True, prompt=typer.echo)
+        typer.echo(f"Outlook authorized. Token saved to {ctx.config.outlook_token_path}")
+    else:
+        raise typer.BadParameter("provider must be 'gmail' or 'outlook'")
 
 
 @app.command()
