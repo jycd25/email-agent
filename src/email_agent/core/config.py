@@ -119,3 +119,7 @@ class RuntimeSettings(BaseModel):
     watchlist_topics: list[str] = Field(
         default_factory=lambda: list(PROFILE_TOPICS[Profile.GENERAL])
     )
+
+
+    smtp_enabled: bool = False
+    smtp_port: int = Field(default=8025, ge=1024, le=65535)

@@ -20,6 +20,7 @@ dependencies = [
     "google-auth-httplib2>=0.2",
     "msal>=1.32",
     "requests>=2.32",
+    "aiosmtpd>=1.4.6",
     "typer>=0.15",
     "python-dotenv>=1.1",
 ]

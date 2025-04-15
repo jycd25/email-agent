@@ -13,6 +13,7 @@ from .llm import LLM, LLMClient
 from .pipeline import Worker
 from .sources.gmail import GmailSource
 from .sources.outlook import OutlookSource
+from .sources.smtp import SmtpListener
 from .store import Store
 
 log = logging.getLogger(__name__)
@@ -42,6 +43,7 @@ class App:
             llm_factory=lambda st: self.make_llm(st),
             sources=list(self.sources.values()),
         )
+        self._smtp: SmtpListener | None = None
         self._worker_task: asyncio.Task | None = None
         self._llm_cache: tuple[tuple, LLM] | None = None
 
@@ -93,6 +95,10 @@ class App:
 
     async def start(self) -> None:
         self.bus.bind(asyncio.get_running_loop())
+        s = self.settings()
+        if s.smtp_enabled:
+            self._smtp = SmtpListener(self.store, self.bus, host=self.config.host, port=s.smtp_port)
+            self._smtp.start()
         self._worker_task = asyncio.create_task(self.worker.run(), name="email-agent-worker")
         log.info("worker started (data: %s)", self.config.data_dir)
 
@@ -102,6 +108,9 @@ class App:
             self._worker_task.cancel()
             with suppress(asyncio.CancelledError):
                 await self._worker_task
+        if self._smtp:
+            self._smtp.stop()
+
     def status(self) -> dict:
         s = self.settings()
         return {
@@ -111,6 +120,7 @@ class App:
             "gmail_authorized": self.gmail.is_authorized(),
             "outlook_authorized": self.outlook.is_authorized(),
             "outlook_configured": bool(self.config.outlook_client_id),
+            "smtp_enabled": s.smtp_enabled,
             "queue": self.store.queue_stats(),
             "unread_alerts": self.store.unread_alert_count(),
             "last_fetch_at": self.worker.last_fetch_at,
