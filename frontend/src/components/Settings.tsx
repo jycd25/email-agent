@@ -128,6 +128,8 @@ export default function SettingsPage({ settings, onSaved }: { settings: Settings
           <label className="field"><span>Emails per check</span><input className="input" type="number" min={1} max={100} value={s.batch_size} onChange={(e) => set("batch_size", Number(e.target.value))} /></label>
           <label className="field"><span>Ignore mail before (ISO date, blank = none)</span><input className="input" value={s.fetch_since ?? ""} onChange={(e) => set("fetch_since", e.target.value || null)} placeholder="YYYY-MM-DDT00:00:00+00:00" /></label>
           <label className="field"><span>Give up after (attempts)</span><input className="input" type="number" min={1} max={10} value={s.max_attempts} onChange={(e) => set("max_attempts", Number(e.target.value))} /></label>
+          <label className="check"><input type="checkbox" checked={s.smtp_enabled} onChange={(e) => set("smtp_enabled", e.target.checked)} /> Accept mail on a local SMTP port (restart required)</label>
+          {s.smtp_enabled && <label className="field"><span>SMTP port</span><input className="input" type="number" value={s.smtp_port} onChange={(e) => set("smtp_port", Number(e.target.value))} /></label>}
         </div>
       </section>
 

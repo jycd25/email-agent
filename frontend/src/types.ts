@@ -89,6 +89,8 @@ export interface Settings {
   alert_on_unknown_sender: boolean;
   sender_mode: "rule" | "llm" | "auto";
   watchlist_topics: string[];
+  smtp_enabled: boolean;
+  smtp_port: number;
 }
 export interface AppStatus {
   profile: Profile;
@@ -97,6 +99,7 @@ export interface AppStatus {
   gmail_authorized: boolean;
   outlook_authorized: boolean;
   outlook_configured: boolean;
+  smtp_enabled: boolean;
   queue: Record<Status | "total", number>;
   unread_alerts: number;
   last_fetch_at: string | null;
