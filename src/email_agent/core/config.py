@@ -120,6 +120,8 @@ class RuntimeSettings(BaseModel):
         default_factory=lambda: list(PROFILE_TOPICS[Profile.GENERAL])
     )
 
+    desktop_notifications: bool = True
+    notify_min_level: str = "high"  # low | medium | high | critical
 
     smtp_enabled: bool = False
     smtp_port: int = Field(default=8025, ge=1024, le=65535)

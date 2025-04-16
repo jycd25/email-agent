@@ -10,6 +10,7 @@ from .alerts import AlertService
 from .core.config import AppConfig, Provider, RuntimeSettings
 from .core.events import EventBus
 from .llm import LLM, LLMClient
+from .notify import notify
 from .pipeline import Worker
 from .sources.gmail import GmailSource
 from .sources.outlook import OutlookSource
@@ -26,7 +27,13 @@ class App:
         self.config.ensure_dirs()
         self.store = store or Store(self.config.db_path)
         self.bus = EventBus()
-        self.alerts = AlertService(self.store, self.bus)
+        self.alerts = AlertService(
+            self.store,
+            self.bus,
+            notify,
+            min_notify_level=lambda: self.settings().notify_min_level,
+            notifications_enabled=lambda: self.settings().desktop_notifications,
+        )
         self.gmail = GmailSource(self.config.credentials_path, self.config.token_path)
         self.outlook = OutlookSource(
             self.config.outlook_token_path,
