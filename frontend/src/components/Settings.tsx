@@ -109,6 +109,17 @@ export default function SettingsPage({ settings, onSaved }: { settings: Settings
       </section>
 
       <section className="section">
+        <h2>Notifications and history</h2>
+        <div className="grid2">
+          <label className="check"><input type="checkbox" checked={s.desktop_notifications} onChange={(e) => set("desktop_notifications", e.target.checked)} /> Desktop notification for alerts</label>
+          <label className="field"><span>Notify when alert level is at least</span>
+            <select className="input" value={s.notify_min_level} onChange={(e) => set("notify_min_level", e.target.value as Settings["notify_min_level"])}>
+              {["low", "medium", "high", "critical"].map((l) => <option key={l}>{l}</option>)}
+            </select></label>
+        </div>
+      </section>
+
+      <section className="section">
         <h2>Model</h2>
         <div className="grid2">
           <label className="field"><span>Provider</span>
