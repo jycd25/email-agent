@@ -265,6 +265,26 @@ class Store:
         stats["total"] = sum(stats.values())
         return stats
 
+    def prune(self, *, older_than_days: int) -> dict[str, int]:
+        """Delete emails finished more than N days ago (analyses cascade, alerts keep history).
+
+        Keyed on updated_at, not received_at: a backlog of old mail must not be
+        deleted the moment it is processed."""
+        if older_than_days <= 0:
+            return {"emails": 0}
+        from datetime import timedelta
+
+        cutoff = (datetime.now(UTC) - timedelta(days=older_than_days)).isoformat(timespec="seconds")
+        with self._tx() as c:
+            n = c.execute(
+                "DELETE FROM emails WHERE status IN (?, ?) AND updated_at < ?",
+                (EmailStatus.DONE.value, EmailStatus.FAILED.value, cutoff),
+            ).rowcount
+        if n:
+            with self._conn() as c:
+                c.execute("PRAGMA incremental_vacuum")
+        return {"emails": n}
+
     @staticmethod
     def _email(r: sqlite3.Row) -> EmailRow:
         return EmailRow(

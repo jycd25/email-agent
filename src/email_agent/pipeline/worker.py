@@ -98,7 +98,12 @@ class Worker:
     async def tick(self) -> dict[str, int]:
         fetched = await asyncio.to_thread(self.fetch_all)
         processed = await self.process_queue()
-        return {"fetched": fetched, "processed": processed}
+        pruned = await asyncio.to_thread(
+            self.store.prune, older_than_days=self.settings().retention_days
+        )
+        if pruned["emails"]:
+            log.info("pruned %d old emails", pruned["emails"])
+        return {"fetched": fetched, "processed": processed, "pruned": pruned["emails"]}
 
     def fetch_all(self) -> int:
         s = self.settings()

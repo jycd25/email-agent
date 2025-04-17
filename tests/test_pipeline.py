@@ -63,7 +63,7 @@ async def test_tick_fetches_and_processes_everything(store):
     w, src, bus = make_worker(store, llm, [SAMPLE_PLAIN, SAMPLE_HTML])
     bus.bind(asyncio.get_running_loop())
     out = await w.tick()
-    assert (out["fetched"], out["processed"]) == (2, 2)
+    assert (out["fetched"], out["processed"], out["pruned"]) == (2, 2, 0)
     assert store.queue_stats()["done"] == 2
     kinds = {a.kind for a in store.analyses_for(1)}
     assert kinds == {"sender", "urgency", "topic"}
@@ -149,7 +149,7 @@ async def test_run_loop_survives_tick_exception(store, fake_llm, monkeypatch):
             w.wake()  # arrives mid-tick; must trigger the next tick immediately
             raise RuntimeError("boom")
         w.stop()
-        return {"fetched": 0, "processed": 0}
+        return {"fetched": 0, "processed": 0, "pruned": 0}
 
     monkeypatch.setattr(w, "tick", flaky)
     await asyncio.wait_for(w.run(), 2)

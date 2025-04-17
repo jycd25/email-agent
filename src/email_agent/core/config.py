@@ -122,6 +122,7 @@ class RuntimeSettings(BaseModel):
 
     desktop_notifications: bool = True
     notify_min_level: str = "high"  # low | medium | high | critical
+    retention_days: int = Field(default=90, ge=0, le=3650)  # 0 = keep forever
 
     smtp_enabled: bool = False
     smtp_port: int = Field(default=8025, ge=1024, le=65535)
