@@ -91,6 +91,7 @@ export interface Settings {
   watchlist_topics: string[];
   desktop_notifications: boolean;
   notify_min_level: "low" | "medium" | "high" | "critical";
+  retention_days: number;
   smtp_enabled: boolean;
   smtp_port: number;
 }

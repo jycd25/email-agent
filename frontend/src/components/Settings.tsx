@@ -116,6 +116,8 @@ export default function SettingsPage({ settings, onSaved }: { settings: Settings
             <select className="input" value={s.notify_min_level} onChange={(e) => set("notify_min_level", e.target.value as Settings["notify_min_level"])}>
               {["low", "medium", "high", "critical"].map((l) => <option key={l}>{l}</option>)}
             </select></label>
+          <label className="field"><span>Delete analyzed mail after (days, 0 = keep)</span>
+            <input className="input" type="number" min={0} max={3650} value={s.retention_days} onChange={(e) => set("retention_days", Number(e.target.value))} /></label>
         </div>
       </section>
 
