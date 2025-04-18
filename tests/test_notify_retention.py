@@ -80,3 +80,23 @@ def test_prune_removes_only_old_finished_emails(store):
     assert store.get_email(a) is None and store.get_email(b) and store.get_email(c)
     assert store.analyses_for(a) == []
     assert store.list_alerts()[0].email_id is None  # FK set null, alert history kept
+
+
+def test_analyze_file_builds_prompt(tmp_path, monkeypatch):
+    from typer.testing import CliRunner
+
+    from conftest import SAMPLE_PLAIN, FakeLLM
+    from email_agent import cli
+    from email_agent.app import App
+    from email_agent.core.config import AppConfig
+
+    eml = tmp_path / "m.eml"
+    eml.write_bytes(SAMPLE_PLAIN)
+    cfg = AppConfig(data_dir=tmp_path / "d", _env_file=None)
+    ctx = App(cfg)
+    monkeypatch.setattr(ctx, "make_llm", lambda s=None: FakeLLM())
+    monkeypatch.setattr(cli, "_ctx", lambda: ctx)
+    r = CliRunner().invoke(cli.app, ["analyze", "--file", str(eml), "--json"])
+    assert r.exit_code == 0, r.output
+    assert '"tool": "comprehensive_email_analysis"' in r.output
+    assert '"email": "ada@university.edu"' in r.output
