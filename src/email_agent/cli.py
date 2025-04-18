@@ -113,5 +113,26 @@ def analyze(
     typer.echo(json.dumps(result, indent=2, default=str) if as_json else agent.format(result))
 
 
+@app.command()
+def status() -> None:
+    """Show queue, alerts and connection status."""
+    ctx = _ctx()
+    typer.echo(json.dumps(ctx.status(), indent=2, default=str))
+
+
+@app.command()
+def fetch() -> None:
+    """Fetch and process once, then exit."""
+    import asyncio
+
+    ctx = _ctx()
+
+    async def main() -> None:
+        ctx.bus.bind(asyncio.get_running_loop())
+        typer.echo(json.dumps(await ctx.worker.tick()))
+
+    asyncio.run(main())
+
+
 if __name__ == "__main__":
     app()
