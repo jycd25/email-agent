@@ -16,6 +16,17 @@ node_modules/
 frontend/dist/
 src/email_agent/web/dist/
 
+# local data & secrets (never commit)
+.env
+.env.*
+!.env.example
+credentials.json
+token.json
+*.db
+*.db-wal
+*.db-shm
+*.log
+
 # local notes, not for the repo
 docs/
 
