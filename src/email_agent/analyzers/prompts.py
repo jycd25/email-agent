@@ -41,7 +41,8 @@ PERSONA: dict[Profile, str] = {
         "  2. Security: vulnerability disclosures, credential leaks, certificate expiry.\n"
         "  3. Failed deploys, failed migrations, rollback requests.\n"
         "  4. Incident post-mortems and follow-up action items assigned to them.\n"
-        "Vendor marketing and release-notes digests are low priority. A resolved incident is "
+        "Vendor marketing, release-notes digests, recurring 'all green' status reports and "
+        "automated low-severity notifications are low priority. A resolved incident is "
         "lower priority than an open one. Treat 'test' or 'staging' environments as less "
         "urgent than production unless the email says otherwise."
     ),
