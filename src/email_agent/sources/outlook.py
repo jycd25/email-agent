@@ -25,10 +25,11 @@ BATCH_LIMIT = 20  # Graph caps JSON batches at 20 requests
 
 
 def _graph_time(iso: str) -> str:
+    """Graph wants UTC with a trailing Z, no offset."""
     dt = datetime.fromisoformat(iso)
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=UTC)
-    return dt.astimezone(UTC).isoformat(timespec="seconds")
+    return dt.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 class OutlookSource:

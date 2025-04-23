@@ -67,7 +67,7 @@ def test_fetch_uses_one_batch_and_honors_skip_and_since(tmp_path):
     assert out[0].raw == SAMPLE_PLAIN
     assert out[0].received_at == "2025-03-03T09:00:00+00:00"
     assert g.batches == [["a", "old"]]
-    assert "receivedDateTime ge 2025-03-01T00:00:00" in g.list_params["$filter"]
+    assert "receivedDateTime ge 2025-03-01T00:00:00Z" in g.list_params["$filter"]
     assert "isRead eq false" in g.list_params["$filter"]
     assert g.headers["Prefer"] == 'IdType="ImmutableId"'
 
