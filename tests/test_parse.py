@@ -20,7 +20,7 @@ def test_html_only_email_is_converted_and_scripts_dropped():
 
 
 def test_html_to_text_keeps_line_breaks():
-    assert html_to_text("a<br>b") == "a\nb"
+    assert html_to_text("<p>a</p><p>b</p>") == "a\nb"
 
 
 def test_encoded_subject_header():

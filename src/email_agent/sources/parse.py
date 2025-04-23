@@ -31,7 +31,7 @@ class _TextExtractor(HTMLParser):
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag in self._SKIP:
             self._skip += 1
-        elif tag == "br":
+        elif tag in {"br", "p", "div", "li", "tr", "h1", "h2", "h3", "h4"}:
             self._chunks.append("\n")
 
     def handle_endtag(self, tag: str) -> None:
