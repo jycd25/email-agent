@@ -58,3 +58,6 @@ src = ["src", "tests"]
 select = ["E", "F", "I", "B", "UP"]
 # ruff format owns line wrapping; long f-strings and SQL are left as written.
 ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/email_agent/cli.py" = ["B008"]  # typer options are declared in defaults by design
