@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling>=1.27"]
+requires = ["hatchling>=1.27,<2"]
 build-backend = "hatchling.build"
 
 [project]
@@ -10,27 +10,27 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi>=0.115",
-    "uvicorn>=0.34",
-    "pydantic>=2.11",
-    "pydantic-settings>=2.9",
-    "openai>=1.75",
-    "google-api-python-client>=2.160",
-    "google-auth-oauthlib>=1.2",
-    "google-auth-httplib2>=0.2",
-    "msal>=1.32",
-    "requests>=2.32",
-    "aiosmtpd>=1.4.6",
-    "typer>=0.15",
-    "python-dotenv>=1.1",
+    "fastapi>=0.115,<0.116",
+    "uvicorn>=0.34,<0.36",
+    "pydantic>=2.11,<3",
+    "pydantic-settings>=2.9,<3",
+    "openai>=1.75,<2",
+    "google-api-python-client>=2.160,<3",
+    "google-auth-oauthlib>=1.2,<2",
+    "google-auth-httplib2>=0.2,<1",
+    "msal>=1.32,<2",
+    "requests>=2.32,<3",
+    "aiosmtpd>=1.4.6,<2",
+    "typer>=0.15,<0.17",
+    "python-dotenv>=1.1,<2",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.3",
-    "pytest-asyncio>=0.25",
-    "httpx>=0.28",
-    "ruff>=0.11",
+    "pytest>=8.3,<9",
+    "pytest-asyncio>=0.25,<2",
+    "httpx>=0.28,<0.29",
+    "ruff>=0.11,<0.13",
 ]
 
 [project.scripts]
