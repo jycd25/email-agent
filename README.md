@@ -75,6 +75,23 @@ feed and as a desktop notification.
 
 That is the whole setup. Everything below is detail.
 
+## What it does
+
+Every new email goes through up to three checks, each producing a result you
+can inspect and an alert if it crosses your threshold:
+
+| Check     | Question it answers                              | Cost                      |
+|-----------|--------------------------------------------------|---------------------------|
+| Urgency   | How soon do I need to act, and on what?          | 1 model call, 2 if it matters |
+| Watchlist | Is this about one of the topics I care about?    | 1 model call, 2 if it matters |
+| Sender    | Who is this from — trusted, blocked, VIP, noise? | 0 calls if a rule matches |
+
+Blocked senders stop the pipeline early. Quick checks that come back
+confident and boring stop early too, so most mail costs one cheap call.
+
+The UI shows the inbox with a severity rail, per-email analysis, an alert
+feed, an ad-hoc analyzer, and settings. It updates live as mail arrives.
+
 ## Configuration
 
 Static settings come from the environment (see [.env.example](.env.example)).
