@@ -92,6 +92,27 @@ confident and boring stop early too, so most mail costs one cheap call.
 The UI shows the inbox with a severity rail, per-email analysis, an alert
 feed, an ad-hoc analyzer, and settings. It updates live as mail arrives.
 
+## Command line
+
+```bash
+email-agent ui                     # web UI + background worker
+email-agent run                    # worker only, no UI
+email-agent fetch                  # check once and exit
+email-agent status                 # queue and connection state as JSON
+email-agent auth gmail|outlook     # sign in to a mailbox
+email-agent analyze "is this urgent: {Prod API error rate at 12%, checkouts failing}"
+email-agent analyze "analyze sender prof@university.edu"
+email-agent analyze --file saved-message.eml      # or:  cat msg.eml | email-agent analyze -f -
+```
+
+Plain-English instructions work in Settings or via the API:
+
+```
+monitor urgency, starting now
+monitor topic Security Incident, starting today 9am
+track sender advisor@university.edu, from yesterday
+```
+
 ## Configuration
 
 Static settings come from the environment (see [.env.example](.env.example)).
