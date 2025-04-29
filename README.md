@@ -217,6 +217,20 @@ canned pydantic objects per schema and records every call. Pipeline tests use
 a `FakeSource`. API tests run the FastAPI app in-process with httpx. Nothing
 touches Gmail, Outlook, or a real model.
 
+## Develop
+
+```bash
+pip install -e ".[dev]"
+pytest                             # ~60 tests, no network
+ruff check src tests && ruff format --check src tests
+
+cd frontend && npm install
+npm run dev                        # Vite on :5173, proxies /api to :8000
+npm run build                      # writes src/email_agent/web/dist
+```
+
+`python -m build` produces a wheel that includes the built UI.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
