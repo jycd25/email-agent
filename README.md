@@ -130,6 +130,93 @@ Alerts at or above a level you choose also raise a desktop notification
 An optional local SMTP listener (Settings → Checking mail) lets other tools
 push email straight in: `swaks --to x --server 127.0.0.1:8025 < msg.eml`.
 
+## How it is built
+
+```
+src/email_agent/
+  core/        config, events, logging
+  store/       SQLite (WAL): emails, analyses, alerts, rules, settings
+  sources/     Gmail API, Microsoft Graph, local SMTP, RFC 822 parsing
+  llm/         one client for Ollama and OpenAI, structured output
+  analyzers/   urgency, topic, sender, classifier + all prompts in prompts.py
+  pipeline/    the single worker loop: fetch → claim → analyze → alert
+  api/         FastAPI on localhost, SSE for live updates, serves the UI
+  web/dist/    built React app (shipped in the wheel)
+frontend/      React + TypeScript source (Vite)
+tests/         pytest, offline — Gmail, Outlook and the model are faked
+```
+
+The reasoning behind the main choices, for whoever touches the code next:
+
+**One queue, one loop.** Mail enters through `sources/` and is written to the
+`emails` table with `status = queued`. A single worker (`pipeline/worker.py`)
+claims batches with an atomic `UPDATE ... WHERE status='queued'`, runs the
+analyzers, stores results, and marks `done` or `failed`. There is no second
+queue, no per-email files, no directory scanning. Failures are retried on the
+*next* poll, not immediately, so a flapping model does not burn every attempt
+in one tick. Anything still `processing` at startup was interrupted and goes
+back to `queued`.
+
+**The loop never dies quietly.** Any exception inside a tick is logged, turned
+into a system alert, and the loop continues. Fetch failures of any kind (auth
+refresh, network, quota) are reported the same way. A "check now" that arrives
+mid-tick is honored on the next iteration rather than dropped.
+
+**Sources are polled if signed in, not if selected.** There is no "which
+provider" setting. Each source exposes `is_authorized()`, and the worker polls
+every source that says yes, so a personal Gmail and a school Outlook land in
+one inbox without choosing. Outlook uses MSAL's device-code flow because
+school tenants often break local redirect servers, and because it works over
+SSH. Both token files are written with mode `0600`.
+
+**Fetches are batched.** Message ids come from one `list` call; bodies come
+from one batch HTTP request (Gmail's batch endpoint, Graph's `/$batch` in
+chunks of 20) instead of one round trip per message. Already-seen ids are
+filtered first, so a poll that finds nothing new costs a single request.
+
+**Two-stage checks.** Urgency and topic analysis first run a cheap check
+(level + confidence). If the result is confidently below the threshold, that
+is the answer. Only possible hits get the full pass with summaries, deadlines
+and keywords. Bodies are clipped to a few thousand characters (head plus a
+little tail) before they reach the model; local models slow down sharply on
+long inputs and the signal is almost always near the top.
+
+**Analyzers are pure.** Each analyzer takes a model client and returns a
+pydantic result. They do not read settings, write to the store, or raise
+alerts. The worker owns the thresholds and decides what becomes an alert,
+which keeps the analyzers testable with a fake model and keeps the "when do we
+alert" policy in one place.
+
+**Prompts carry the persona.** `analyzers/prompts.py` holds every prompt. Each
+opens with a persona block chosen by the `profile` setting (general / student /
+on-call), then the task rubric. The persona says what the user cares about
+and, just as importantly, what to ignore — campus digests, vendor marketing,
+"all green" reports. Tuning a profile is a one-file change.
+
+**Single model client.** Ollama exposes an OpenAI-compatible endpoint, so one
+`LLMClient` covers both providers. Structured output uses
+`beta.chat.completions.parse` with a pydantic schema and falls back to
+`json_object` mode plus manual validation when a provider lacks JSON schema.
+
+**SQLite, not JSON files.** Everything the app remembers lives in one SQLite
+file in WAL mode: emails and their raw bytes, analysis results, alerts, sender
+rules, runtime settings. Writes are short transactions; readers never block.
+Each thread keeps one connection open and reuses it.
+
+**Retention counts from finish time.** Old mail is pruned by `updated_at`
+(when processing finished), not by the email's own date. Otherwise pointing
+`fetch_since` at a months-old backlog would delete everything the moment it
+was analyzed.
+
+**Local by design.** The API binds to `127.0.0.1`. The UI is static files
+served by the same process and uses system fonts so it works offline. There
+is no auth layer because there is no remote access.
+
+**Tests run offline.** `tests/conftest.py` provides `FakeLLM`, which returns
+canned pydantic objects per schema and records every call. Pipeline tests use
+a `FakeSource`. API tests run the FastAPI app in-process with httpx. Nothing
+touches Gmail, Outlook, or a real model.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
